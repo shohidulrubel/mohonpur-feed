@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mohonpur Feed Register</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+  .header{background:#1c4587;color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+  .header-icon{font-size:24px}
+  .header h1{font-size:16px;font-weight:600;margin:0}
+  .header p{font-size:11px;opacity:.8;margin:0}
+  .container{padding:1rem;max-width:480px;margin:0 auto}
+  .card{background:#fff;border-radius:12px;padding:1rem 1.25rem;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .field-label{font-size:12px;font-weight:600;color:#555;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+  input[type=date],input[type=number]{width:100%;font-size:16px;padding:11px 14px;border:1.5px solid #dde3ec;border-radius:8px;background:#f8fafc;color:#1a1a1a;margin-bottom:12px;-webkit-appearance:none}
+  input:focus{outline:none;border-color:#1c4587;background:#fff}
+  .pond-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .pond-box{background:#f0f4f8;border-radius:8px;padding:10px}
+  .pond-box .field-label{font-size:11px;color:#1c4587;margin-bottom:4px}
+  .pond-box input{font-size:16px;padding:8px 10px;margin-bottom:0;background:#fff;border-color:#c8d5e8}
+  .pond-box-full{grid-column:1/-1;max-width:calc(50% - 5px)}
+  .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .stat{background:#f0f4f8;border-radius:8px;padding:12px;text-align:center}
+  .stat-lbl{font-size:11px;color:#666;margin-bottom:4px}
+  .stat-val{font-size:22px;font-weight:700;color:#1c4587}
+  .stat-val.danger{color:#c0392b}
+  .stat-val.good{color:#1e8449}
+  .btn-save{width:100%;padding:13px;font-size:15px;font-weight:600;background:#1c4587;color:#fff;border:none;border-radius:10px;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+  .btn-save:active{opacity:.85}
+  .btn-save:disabled{background:#aab;cursor:not-allowed}
+  .btn-excel{width:100%;padding:11px;font-size:14px;font-weight:600;background:#fff;color:#1e8449;border:1.5px solid #1e8449;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-excel:active{background:#f0faf0}
+  .records-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .records-title{font-size:13px;font-weight:600;color:#333}
+  .rec-count{font-size:11px;background:#e8f0fe;color:#1c4587;padding:2px 8px;border-radius:20px;font-weight:600}
+  .record{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:4px solid #1c4587}
+  .record.neg{border-left-color:#c0392b}
+  .rec-date{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+  .rec-chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
+  .chip-blue{background:#e8f0fe;color:#1c4587}
+  .chip-green{background:#e8f8ee;color:#1e8449}
+  .chip-red{background:#fdecea;color:#c0392b}
+  .chip-gray{background:#f0f0f0;color:#555}
+  .del-btn{float:right;background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;line-height:1}
+  .del-btn:active{color:#c0392b}
+  .empty{text-align:center;padding:2rem;color:#999;font-size:13px}
+  .empty-icon{font-size:36px;margin-bottom:8px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:25px;font-size:13px;font-weight:600;color:#fff;z-index:999;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+  .toast.ok{background:#1e8449}
+  .toast.err{background:#c0392b}
+  .toast.warn{background:#d68910}
+  .loading{text-align:center;padding:1rem;font-size:13px;color:#666}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#1c4587;border-radius:50%;animation:spin .6s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🐟</div>
+  <div>
+    <h1>Mohonpur Feed Register</h1>
+    <p>Daily feed inventory — মহনপুর প্রকল্প</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Entry Form -->
+  <div class="card">
+    <p class="field-label">📅 Date | তারিখ</p>
+    <input type="date" id="entry-date">
+
+    <p class="field-label">🛒 Feed Purchase (বস্তা) | আজকের ক্রয়</p>
+    <input type="number" id="purchase" placeholder="0" min="0" oninput="calcSummary()">
+
+    <p class="field-label" style="margin-bottom:8px">🐠 Feed issued per pond | পুকুর অনুযায়ী</p>
+    <div class="pond-grid">
+      <div class="pond-box">
+        <p class="field-label">Pond 1</p>
+        <input type="number" id="p1" placeholder="0" min="0" oninput="calcSummary()">
+      </div>
+      <div class="pond-box">
+        <p class="field-label">Pond 2</p>
+        <input type="number" id="p2" placeholder="0" min="0" oninput="calcSummary()">
+      </div>
+      <div class="pond-box pond-box-full">
+        <p class="field-label">Pond 3</p>
+        <input type="number" id="p3" placeholder="0" min="0" oninput="calcSummary()">
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="stat">
+        <p class="stat-lbl">Total issued</p>
+        <p class="stat-val" id="stat-total">0</p>
+      </div>
+      <div class="stat">
+        <p class="stat-lbl">Closing stock</p>
+        <p class="stat-val" id="stat-closing">—</p>
+      </div>
+    </div>
+
+    <button class="btn-save" id="btn-save" onclick="submitEntry()">
+      ✅ Save Entry
+    </button>
+    <button class="btn-excel" onclick="downloadExcel()">
+      ⬇️ Download Excel
+    </button>
+  </div>
+
+  <!-- Records -->
+  <div>
+    <div class="records-header">
+      <span class="records-title">📋 Saved entries</span>
+      <span class="rec-count" id="rec-count">0 records</span>
+    </div>
+    <div id="records-list">
+      <div class="loading"><span class="spinner"></span>Loading records...</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzXpvYnhbBVkrs2mxCxDMLSzDgo-_DJ_5_ykV6gnH1tjClfz_3tWPoiLyeaTAGl_cO0gQ/exec';
+var records = [];
+
+function init() {
+  var d = new Date();
+  document.getElementById('entry-date').value = d.toISOString().split('T')[0];
+  fetchRecords();
+}
+
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type||'ok');
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display='none'; }, 3000);
+}
+
+function calcSummary() {
+  var p1 = +document.getElementById('p1').value||0;
+  var p2 = +document.getElementById('p2').value||0;
+  var p3 = +document.getElementById('p3').value||0;
+  var total = p1+p2+p3;
+  document.getElementById('stat-total').textContent = total;
+  var prevClosing = records.length ? records[records.length-1]['Closing Stock']||0 : 0;
+  var purchase = +document.getElementById('purchase').value||0;
+  var closing = prevClosing + purchase - total;
+  var el = document.getElementById('stat-closing');
+  el.textContent = closing;
+  el.className = 'stat-val ' + (closing < 0 ? 'danger' : 'good');
+}
+
+function fetchRecords() {
+  fetch(SCRIPT_URL)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      records = data.rows || [];
+      renderRecords();
+      calcSummary();
+    })
+    .catch(function(){
+      document.getElementById('records-list').innerHTML =
+        '<div class="empty"><div class="empty-icon">⚠️</div>Could not load records.<br>Check internet connection.</div>';
+    });
+}
+
+function submitEntry() {
+  var date = document.getElementById('entry-date').value;
+  var purchase = +document.getElementById('purchase').value||0;
+  var p1 = +document.getElementById('p1').value||0;
+  var p2 = +document.getElementById('p2').value||0;
+  var p3 = +document.getElementById('p3').value||0;
+
+  if (!date) { toast('Please select a date!', 'err'); return; }
+
+  var btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ date:date, purchase:purchase, p1:p1, p2:p2, p3:p3 })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    btn.disabled = false;
+    btn.innerHTML = '✅ Save Entry';
+    if (res.status === 'duplicate') {
+      toast('Entry for this date already exists!', 'warn');
+    } else if (res.status === 'success') {
+      toast('Saved to Google Sheet!');
+      document.getElementById('purchase').value = '';
+      document.getElementById('p1').value = '';
+      document.getElementById('p2').value = '';
+      document.getElementById('p3').value = '';
+      fetchRecords();
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.innerHTML = '✅ Save Entry';
+    toast('Save failed — check connection', 'err');
+  });
+}
+
+function renderRecords() {
+  var list = document.getElementById('records-list');
+  document.getElementById('rec-count').textContent = records.length + ' records';
+  if (!records.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>No entries yet.<br>Add your first entry above.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = records.length-1; i >= 0; i--) {
+    var r = records[i];
+    var closing = r['Closing Stock'];
+    var neg = closing < 0;
+    html += '<div class="record'+(neg?' neg':'')+'">'
+      + '<div class="rec-date">'+r['Date']+'</div>'
+      + '<div class="rec-chips">'
+      + '<span class="chip chip-blue">🛒 '+r['Purchase (বস্তা)']+' bought</span>'
+      + '<span class="chip chip-gray">P1:'+r['Pond 1 Issue']+' P2:'+r['Pond 2 Issue']+' P3:'+r['Pond 3 Issue']+'</span>'
+      + '<span class="chip chip-gray">📦 '+r['Total Issue']+' issued</span>'
+      + '<span class="chip '+(neg?'chip-red':'chip-green')+'">Stock: '+closing+'</span>'
+      + '</div></div>';
+  }
+  list.innerHTML = html;
+}
+
+function downloadExcel() {
+  if (!records.length) { toast('No records to download', 'err'); return; }
+  var wsData = [
+    ['Mohonpur Feed Register'],
+    [],
+    ['Date','Opening Stock','Purchase (বস্তা)','Pond 1','Pond 2','Pond 3','Total Issue','Closing Stock']
+  ];
+  records.forEach(function(r){
+    wsData.push([
+      r['Date'], r['Opening Stock'], r['Purchase (বস্তা)'],
+      r['Pond 1 Issue'], r['Pond 2 Issue'], r['Pond 3 Issue'],
+      r['Total Issue'], r['Closing Stock']
+    ]);
+  });
+  wsData.push([]);
+  wsData.push(['TOTAL','',
+    records.reduce(function(s,r){return s+(+r['Purchase (বস্তা)']);},0),'','','',
+    records.reduce(function(s,r){return s+(+r['Total Issue']);},0),''
+  ]);
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{wch:12},{wch:14},{wch:14},{wch:10},{wch:10},{wch:10},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Feed Register');
+  XLSX.writeFile(wb, 'Mohonpur_Feed_Register.xlsx');
+  toast('Excel downloaded!');
+}
+
+init();
+</script>
+</body>
+</html>
